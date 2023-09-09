@@ -7,7 +7,7 @@ require('dotenv').config()
 const newsapi = new NewsAPI(process.env.NEWS_API_KEY);
 const Levenshtein = require('fast-levenshtein');
 const THRESHOLD = 5;
-
+const { getLanguageByCountryCode, getCountryNameByCode, getCountryByLanguage } = require('../enum/LanguageEnum');
 const isSimilarArticle = (newArticle, existingArticles) => {
     for (const existingArticle of existingArticles) {
         const distance = Levenshtein.get(newArticle.title, existingArticle.title);
@@ -23,17 +23,17 @@ const isSimilarArticle = (newArticle, existingArticles) => {
 const getNews = async (req, res, next) => {
     try {
         const response = await newsapi.v2.topHeadlines({
-            country: 'us'
+            country: req.query.country
         });
 
         const existingArticlesSnapshot = await db.collection('original_feeds').get();
         const existingArticles = existingArticlesSnapshot.docs.map(doc => doc.data());
 
         const articlePromises = response.articles.map(async (article) => {
-            console.log(article.title);
+            console.log(article);
 
             if (!isSimilarArticle(article, existingArticles) || existingArticles.length === 0) {
-                return db.collection('original_feeds').add(article);
+                return db.collection('original_feeds').doc(getLanguageByCountryCode(req.query.country)).collection("feeds").add(article);
             } else {
                 console.log(`Article '${article.title}' is similar to existing one. Skipping.`);
                 return null;
@@ -49,4 +49,33 @@ const getNews = async (req, res, next) => {
         res.status(500).send('Internal Server Error');
     }
 };
-module.exports = getNews;
+const getNewsFunction = async (country) => {
+    try {
+        const response = await newsapi.v2.topHeadlines({
+            country: country
+        });
+
+        const existingArticlesSnapshot = await db.collection('original_feeds').get();
+        const existingArticles = existingArticlesSnapshot.docs.map(doc => doc.data());
+
+        const articlePromises = response.articles.map(async (article) => {
+            console.log(article);
+
+            if (!isSimilarArticle(article, existingArticles) || existingArticles.length === 0) {
+                return db.collection('original_feeds').doc(getLanguageByCountryCode(country)).collection("feeds").add(article);
+            } else {
+                console.log(`Article '${article.title}' is similar to existing one. Skipping.`);
+                return null;
+            }
+        });
+
+        await Promise.all(articlePromises);
+
+        res.status(200).send('Successfully processed articles');
+
+    } catch (error) {
+        console.error("Error fetching news or writing to Firestore: ", error);
+        res.status(500).send('Internal Server Error');
+    }
+};
+module.exports = { getNews, getNewsFunction };
