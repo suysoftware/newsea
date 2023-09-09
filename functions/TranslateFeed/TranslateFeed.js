@@ -6,38 +6,59 @@ const OpenAIApi = require("openai");
 const { ChatMessage, chatMessageFromJson, chatMessageToJson } = require('../models/ChatMessage');
 require('dotenv').config()
 
+
 const openai = new OpenAIApi({
     apiKey: process.env.OPEN_AI_API_KEY,
 });
 
 const translateFeed = async (originalFeed, languageFrom, languageTo) => {
-    console.log("girdik");
 
-    var promptText = originalFeed.title;
-    console.log(promptText);
+    var promptTitle = originalFeed.title;
+    var promptDescription = originalFeed.description;
+    var promptContent = originalFeed.content;
 
-    var myChatMessage = new ChatMessage("user", promptText);
+
+
+    var systemMessage = 'Translate the following "' + languageFrom + " text to " + languageTo + ' and understand these texts which categories only in these categories ["Business", "Entertainment", "Health", "Science", "Sports", "Technology","Weather"] (but dont translate these categories and choose maximum 2 category )  format the output as a JSON object';
+
+    // var promptGeneral = "Title: " + promptTitle + "\nDescription: " + promptDescription + "\nContent: " + promptContent + '\n\n Format: {"title": "translatedTitleText","description": "translatedDescriptionText","content": "translatedContentText"}'
+    const promptGeneral = `
+      Title: ${promptTitle}
+      Description: ${promptDescription}
+      Content: ${promptContent}
+      
+      Translation Format: 
+      {
+        "title": "translatedTitleText",
+        "description": "translatedDescriptionText",
+        "content": "translatedContentText",
+        "categories": categoriesList
+      }`;
 
     try {
 
         const completion = await openai.chat.completions.create({
             messages: [
 
-                { role: 'system', content: "You will be provided with a sentence in " + languageFrom + " , and your task is to translate it into " + languageTo + "." },
-                { role: 'user', content: promptText }],
+                { role: 'system', content: systemMessage },
+                { role: 'user', content: promptGeneral }],
             model: 'gpt-3.5-turbo',
         });
 
-
-        console.log(completion.choices);
         console.log(completion.choices[0].message.content);
+        console.log("buradan sorna json");
+        const resultJSON = JSON.parse(completion.choices[0].message.content);
+
+        console.log(resultJSON.title);
+        console.log(resultJSON.description);
+        console.log(resultJSON.content);
 
 
 
 
 
 
-        return completion.choices[0].message.content;
+        return resultJSON;
 
     } catch (error) {
         console.log(error);
