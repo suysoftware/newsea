@@ -6,7 +6,6 @@ import 'package:newsea/core/constants/app_styles.dart';
 import 'package:newsea/core/widgets/conditional_widget.dart';
 import 'package:newsea/feature/screens/home/controller/home_controller.dart';
 
-
 class CategoryList extends StatefulWidget {
   const CategoryList({super.key});
 
@@ -15,8 +14,48 @@ class CategoryList extends StatefulWidget {
 }
 
 class _CategoryListState extends State<CategoryList> {
-  var countryList = <String>["All", "Turkey", "USA", "Germany", "France", "Russia", "China", "Japan"];
-  var categoryList = <String>["All", "Business", "Entertainment", "Health", "Science", "Sports", "Technology","Weather"];
+  var countryList = <String>["All",   "United Arab Emirates",
+  "Argentina",
+  "Austria",
+  "Australia",
+  "Bulgaria",
+  "Brazil",
+  "China",
+  "Colombia",
+  "Cuba",
+  "Czech Republic",
+  "Germany",
+  "Egypt",
+  "France",
+  "United Kingdom",
+  "Greece",
+  "Hungary",
+  "Indonesia",
+  "Italy",
+  "Japan",
+  "South Korea",
+  "Lithuania",
+  "Latvia",
+  "Mexico",
+  "Malaysia",
+  "Nigeria",
+  "Netherlands",
+  "Norway",
+  "Poland",
+  "Portugal",
+  "Romania",
+  "Serbia",
+  "Russia",
+  "Saudi Arabia",
+  "Sweden",
+  "Slovenia",
+  "Slovakia",
+  "Thailand",
+  "Turkey",
+  "Ukraine",
+  "United States",
+  "Venezuela"];
+  var categoryList = <String>["All", "Business", "Entertainment", "Health", "Science", "Sports", "Technology", "Weather"];
 
   @override
   Widget build(BuildContext context) {
