@@ -4,24 +4,26 @@
 
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 FeedModel feedModelFromJson(String str) => FeedModel.fromJson(json.decode(str));
 
 String feedModelToJson(FeedModel data) => json.encode(data.toJson());
 
 class FeedModel {
-  String title;
-  String author;
-  String source;
-  String country;
-  String description;
-  String url;
-  String urlToImage;
-  DateTime publishedAt;
-  String content;
-  List<String> categories;
-  String referenceNo;
-  String subReferenceNo;
-  List<dynamic> likes;
+  String? title;
+  String? author;
+  String? source;
+  String? country;
+  String? description;
+  String? url;
+  String? urlToImage;
+  Timestamp? publishedAt;
+  String? content;
+  List<String>? categories;
+  String? referenceNo;
+  String? subReferenceNo;
+  List<dynamic>? likes;
 
   FeedModel({
     required this.title,
@@ -47,7 +49,7 @@ class FeedModel {
         description: json["description"],
         url: json["url"],
         urlToImage: json["urlToImage"],
-        publishedAt: DateTime.parse(json["publishedAt"]),
+        publishedAt: json["publishedAt"],
         content: json["content"],
         categories: List<String>.from(json["categories"].map((x) => x)),
         referenceNo: json["reference_no"],
@@ -63,13 +65,11 @@ class FeedModel {
         "description": description,
         "url": url,
         "urlToImage": urlToImage,
-        "publishedAt": publishedAt.toIso8601String(),
+        "publishedAt": publishedAt!.millisecondsSinceEpoch,
         "content": content,
-        "categories": List<dynamic>.from(categories.map((x) => x)),
+        "categories": List<dynamic>.from(categories!.map((x) => x)),
         "reference_no": referenceNo,
         "sub_reference_no": subReferenceNo,
-        "likes": List<dynamic>.from(likes.map((x) => x)),
+        "likes": List<dynamic>.from(likes!.map((x) => x)),
       };
 }
-
-
