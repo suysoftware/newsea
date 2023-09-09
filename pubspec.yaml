@@ -37,6 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   firebase_core: ^2.15.1
   cloud_firestore: ^4.9.1
+  dot_navigation_bar: ^1.0.2
+  get: ^4.6.5
+  sizer: ^2.0.15
 
 dev_dependencies:
   flutter_test:
