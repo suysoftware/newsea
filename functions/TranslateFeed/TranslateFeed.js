@@ -4,10 +4,10 @@ const auth = admin.auth();
 const storage = admin.storage();
 const OpenAIApi = require("openai");
 const { ChatMessage, chatMessageFromJson, chatMessageToJson } = require('../models/ChatMessage');
-
+require('dotenv').config()
 
 const openai = new OpenAIApi({
-    apiKey: "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",
+    apiKey: process.env.OPEN_AI_API_KEY,
 });
 
 const translateFeed = async (originalFeed, languageFrom, languageTo) => {
