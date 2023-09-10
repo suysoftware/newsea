@@ -21,8 +21,55 @@ class HomeController extends GetxController {
       userAvatar: "",
       userMessageToken: "",
       userNotificationSettings: false);
-  List<String> categories = <String>["all"];
-  List<String> countries = <String>["all"];
+  List<dynamic> categories = <String>["All"];
+  List<dynamic> countries = <String>["All"];
+  bool isHomePageTrending = true;
+
+  List<dynamic> countryList = <String>[
+    "All",
+    "United Arab Emirates",
+    "Argentina",
+    "Austria",
+    "Australia",
+    "Bulgaria",
+    "Brazil",
+    "China",
+    "Colombia",
+    "Cuba",
+    "Czech Republic",
+    "Germany",
+    "Egypt",
+    "France",
+    "United Kingdom",
+    "Greece",
+    "Hungary",
+    "Indonesia",
+    "Italy",
+    "Japan",
+    "South Korea",
+    "Lithuania",
+    "Latvia",
+    "Mexico",
+    "Malaysia",
+    "Nigeria",
+    "Netherlands",
+    "Norway",
+    "Poland",
+    "Portugal",
+    "Romania",
+    "Serbia",
+    "Russia",
+    "Saudi Arabia",
+    "Sweden",
+    "Slovenia",
+    "Slovakia",
+    "Thailand",
+    "Turkey",
+    "Ukraine",
+    "United States",
+    "Venezuela"
+  ];
+  List<dynamic> categoryList = <String>["All", "Business", "Entertainment", "Health", "Science", "Sports", "Technology", "Weather"];
 
   void updateUser(NsUser newUser) {
     nsUser = newUser;
@@ -35,70 +82,77 @@ class HomeController extends GetxController {
   }
 
   void changeFilteredCategories(String category) {
-    var categoryLowerCase = category.toLowerCase();
-
-    if (categoryLowerCase == "all") {
+    if (category == "All") {
       cleanCategories();
-      categories.add(categoryLowerCase);
+      categories.add(category);
+
       update();
       return;
     } else {
-      if (!isCategoryActive(categoryLowerCase)) {
-        categories.remove("all");
+      if (!isCategoryActive(category)) {
+        categories.remove("All");
+        update();
       }
     }
 
-    if (isCategoryActive(categoryLowerCase)) {
-      categories.remove(categoryLowerCase);
+    if (isCategoryActive(category)) {
+      categories.remove(category);
 
       if (categories.isEmpty) {
-        categories.add("all");
+        categories.add("All");
       }
+
       update();
     } else {
-      categories.add(categoryLowerCase);
+      categories.add(category);
+
       update();
     }
   }
 
   void changeFilteredCountries(String country) {
-    var countryLowerCase = country.toLowerCase();
-
-    if (countryLowerCase == "all") {
+    if (country == "All") {
       cleanCountries();
-      countries.add(countryLowerCase);
+      countries.add(country);
+
       update();
       return;
     } else {
-      if (!isCountryActive(countryLowerCase)) {
-        countries.remove("all");
+      if (!isCountryActive(country)) {
+        countries.remove("All");
+
+        update();
       }
     }
 
-    if (isCountryActive(countryLowerCase)) {
-      countries.remove(countryLowerCase);
+    if (isCountryActive(country)) {
+      countries.remove(country);
       if (countries.isEmpty) {
-        countries.add("all");
+        countries.add("All");
       }
+
       update();
     } else {
-      countries.add(countryLowerCase);
+      countries.add(country);
+
       update();
     }
   }
 
   void cleanCategories() {
     categories.clear();
+
     update();
   }
 
   void cleanCountries() {
     countries.clear();
+
     update();
   }
 
   bool isCategoryActive(String category) {
-    if (categories.contains(category.toLowerCase())) {
+    if (categories.contains(category)) {
       return true;
     } else {
       return false;
@@ -106,24 +160,109 @@ class HomeController extends GetxController {
   }
 
   bool isCountryActive(String country) {
-    if (countries.contains(country.toLowerCase())) {
+    if (countries.contains(country)) {
       return true;
     } else {
       return false;
     }
   }
 
-void getFeedFromDatabase() async {
-  
-   await FirebaseFirestore.instance
+  void getFeedFromDatabase() async {
+    await FirebaseFirestore.instance
         .collection('translated_feeds')
         .doc(nsUser.userLanguage)
         .collection("feeds")
         .withConverter(fromFirestore: (snapshot, _) => FeedModel.fromJson(snapshot.data()!), toFirestore: (feed, _) => feed.toJson())
         .get()
         .then((comingFeeds) {
-      feeds .addAll(comingFeeds.docs.map((e) => e.data()).toList());
+      feeds.addAll(comingFeeds.docs.map((e) => e.data()).toList());
+    });
+  }
+
+  void updateHomePageTrending(bool isTrending) {
+    isHomePageTrending = isTrending;
+    update();
+  }
+
+  List<dynamic> getCountries() {
+    return isHomePageTrending ? countryList : nsUser.targetCountries;
+  }
+
+  List<dynamic> getCategories() {
+    return isHomePageTrending ? categoryList : nsUser.targetCategories;
+  }
+
+  Future<void> saveFeedToBookmarks(FeedModel feed) async {
+    await FirebaseFirestore.instance.collection('users').doc(nsUser.userUid).update({
+      "userReadlist": FieldValue.arrayUnion([feed.subReferenceNo])
     });
 
+    nsUser.userReadlist.add(feed.subReferenceNo);
+    update();
+  }
+
+  Future<void> removeFeedFromBookmarks(FeedModel feed) async {
+    await FirebaseFirestore.instance.collection('users').doc(nsUser.userUid).update({
+      "userReadlist": FieldValue.arrayRemove([feed.subReferenceNo])
+    });
+
+    nsUser.userReadlist.remove(feed.subReferenceNo);
+    update();
+  }
+
+  Future<void> changeLanguage(String language) async {
+    await FirebaseFirestore.instance.collection('users').doc(nsUser.userUid).update({"userLanguage": language});
+
+    nsUser.userLanguage = language;
+    update();
+  }
+
+  bool checkExploreItems(String item) {
+    for (var i = 0; i < nsUser.targetCategories.length; i++) {
+      if (nsUser.targetCategories[i] == item) {
+        return true;
+      }
+    }
+
+    for (var i = 0; i < nsUser.targetCountries.length; i++) {
+      if (nsUser.targetCountries[i] == item) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  removeFollowingItem(String item) async {
+    //remove where
+    //remove from database
+
+    nsUser.targetCategories.removeWhere((element) => element == item);
+    nsUser.targetCountries.removeWhere((element) => element == item);
+
+    await FirebaseFirestore.instance.collection('users').doc(nsUser.userUid).update({
+      "targetCategories": nsUser.targetCategories,
+      "targetCountries": nsUser.targetCountries,
+    });
+
+    update();
+  }
+
+  addFollowingItem(String item, String type) async {
+    //add where
+    //add to database
+
+    if (type == "category") {
+      nsUser.targetCategories.add(item);
+    } else if (type == "country") {
+      nsUser.targetCountries.add(item);
+    }
+
+    await FirebaseFirestore.instance.collection('users').doc(nsUser.userUid).update({
+      "targetCategories": nsUser.targetCategories,
+      "targetCountries": nsUser.targetCountries,
+    });
+
+    update();
   }
 }
