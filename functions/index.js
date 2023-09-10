@@ -17,8 +17,74 @@ const { getNews, getNewsFunction } = require('./GetNews/GetNews');
 const translateFeed = require('./TranslateFeed/TranslateFeed');
 const { getLanguageByCountryCode, getCountryNameByCode, getCountryByLanguage } = require('./enum/LanguageEnum');
 const translatedFeedToDatabase = require('./TriggeredFunctions/TranslatedFeedToDatabase');
+const getTranslatedFeed = require('./TranslateFeed/TranslatedFeedGet');
+const getBookmarkFeeds = require('./FirestoreOperations/GetBookmarkFeeds');
+const getFilteredFeeds = require('./FirestoreOperations/GetFilteredFeeds');
 
 app.put('/getNews', getNews);
+
+app.get('/getTranslatedFeed', getTranslatedFeed);
+
+app.get('/getBookmarkFeeds', getBookmarkFeeds)
+
+app.put('/getFilteredFeeds', getFilteredFeeds)
+
+/*{
+"source": {
+"id": "the-washington-post",
+"name": "The Washington Post"
+},
+"author": "Henrik Bahlmann",
+"title": "Was lange wäscht…",
+"description": "Gute Spülmaschinen sind leider teuer, stellt die Stiftung Warentest fest und gibt einer Kategorie durchweg mäßige Noten. Am meisten spart, wer einen simplen Tipp beherzigt.",
+"url": "https://www.washingtonpost.com/wellness/2023/09/10/grandfather-post-polio-syndrome/",
+"urlToImage": "https://firebasestorage.googleapis.com/v0/b/newsea-project.appspot.com/o/Screenshot%202023-09-10%20at%2016.37.11.png?alt=media&token=58db26af-486a-42e9-8e25-4782c79b5deb",
+"publishedAt": "2023-09-10T15:31:34Z",
+"content": "Was teil- und vollintegrierte Spüler unterscheidet, ist die Lage der Bedienelemente: Bei den vollintegrierten stecken sie in der Oberseite der Tür. Dadurch kann die Gehäusefront komplett dem Design der Küche angepasst werden. Teilintegrierte Geräte hingegen haben eine Bedienblende auf der Vorderseite, sodass nur der untere Teil mit einer Frontplatte im Look der Küchenmöbel versehen werden kann. Eine dritte Variante sind frei stehende Maschinen, die bei diesem Test aber nicht berücksichtigt wurden."
+}
+
+ */
+app.put('/addManuelFeed', async (req, res, next) => {
+
+    const fromLanguage = req.query.fromLanguage;
+    const feedSourceId = req.query.id;
+    const feedSourceName = req.query.name;
+    const feedAuthor = req.query.author;
+    const feedTitle = req.query.title;
+    const feedDescription = req.query.description;
+    const feedUrl = req.query.url;
+    const feedUrlToImage = req.query.urlToImage;
+    const feedPublishedAt = req.query.publishedAt;
+    const feedContent = req.query.content;
+
+
+
+
+
+
+    const articleRef = db.collection('manuel_feeds').doc(fromLanguage).collection("feeds");
+
+    try {
+        await articleRef.add({
+            "source": {
+            "id": feedSourceId,
+            "name": feedSourceName
+            },
+            "author": feedAuthor,
+            "title": feedTitle,
+            "description": feedDescription,
+            "url": feedUrl,
+            "urlToImage": feedUrlToImage,
+            "publishedAt": feedPublishedAt,
+            "content": "Was teil- und vollintegrierte Spüler unterscheidet, ist die Lage der Bedienelemente: Bei den vollintegrierten stecken sie in der Oberseite der Tür. Dadurch kann die Gehäusefront komplett dem Design der Küche angepasst werden. Teilintegrierte Geräte hingegen haben eine Bedienblende auf der Vorderseite, sodass nur der untere Teil mit einer Frontplatte im Look der Küchenmöbel versehen werden kann. Eine dritte Variante sind frei stehende Maschinen, die bei diesem Test aber nicht berücksichtigt wurden."
+            });
+        res.status(200).send('Successfully added article');
+    } catch (error) {
+        console.error("Error adding article: ", error);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
 
 
 /*
@@ -65,7 +131,7 @@ app.put('/getNews', getNews);
     "VenezuelaSpanish": "Venezuela" */
 
 
-
+/*
 exports.createdFeedToArabic = functions.firestore.document('original_feeds/{feedLanguage}/feeds/{feedId}').onCreate(async (snap, context) => {
 
     const toLanguage = "UnitedArabEmiratesArabic";
@@ -390,7 +456,7 @@ exports.createdFeedToThai = functions.firestore.document('original_feeds/{feedLa
 
 });
 
-
+*/
 exports.createdFeedToTurkish = functions.firestore.document('original_feeds/{feedLanguage}/feeds/{feedId}').onCreate(async (snap, context) => {
 
     const toLanguage = "Turkish";
@@ -398,7 +464,7 @@ exports.createdFeedToTurkish = functions.firestore.document('original_feeds/{fee
     await translatedFeedToDatabase(snap.data(), toLanguage, context.params.feedLanguage, context.params.feedId);
 
 });
-
+/*
 
 exports.createdFeedToUkrainian = functions.firestore.document('original_feeds/{feedLanguage}/feeds/{feedId}').onCreate(async (snap, context) => {
 
@@ -427,10 +493,32 @@ exports.createdFeedToVenezuelaSpanish = functions.firestore.document('original_f
     await translatedFeedToDatabase(snap.data(), toLanguage, context.params.feedLanguage, context.params.feedId);
 
 });
+*/
+exports.createNewUser = functions.auth.user().onCreate(async (user) => {
+    const newUserUid = user.uid;
+    const usersRef = db.collection('users').doc(newUserUid);
 
+    await usersRef.set({
 
+        "userName": "",
+        "userUid": newUserUid,
+        "userLanguage": "AmericanEnglish",
+        "targetCountries": [],
+        "targetCategories": [],
+        "userReadlist": [],
+        "userAvatar": "",
+        "userMessageToken": "",
+        "userNotificationSettings": false,
+    });
+});
 
+exports.manuelFeedToTurkish = functions.firestore.document('manuel_feeds/{feedLanguage}/feeds/{feedId}').onCreate(async (snap, context) => {
 
+    const toLanguage = "Turkish";
+
+    await translatedFeedToDatabase(snap.data(), toLanguage, context.params.feedLanguage, context.params.feedId);
+
+});
 
 
 
@@ -481,7 +569,7 @@ exports.createdFeedToVenezuelaSpanish = functions.firestore.document('original_f
     "us": "AmericanEnglish",
     "ve": "VenezuelaSpanish", */
 //schule function
-exports.scheduledUsFunction = functions.pubsub.schedule('every 15 minutes').onRun(async (context) => {
+/*exports.scheduledUsFunction = functions.pubsub.schedule('every 240 minutes').onRun(async (context) => {
     const languageCountryArray = ["ae", "ar", "at", "au", "bg", "br", "cn", "co", "cu", "cz", "de", "eg", "fr", "gb", "gr", "hu", "id", "it", "jp", "kr", "lt", "lv", "mx", "my", "ng", "nl", "no", "pl", "pt", "ro", "rs", "ru", "sa", "se", "si", "sk", "th", "tr", "ua", "us", "ve"];
 
     for (let index = 0; index < languageCountryArray.length; index++) {
@@ -489,7 +577,13 @@ exports.scheduledUsFunction = functions.pubsub.schedule('every 15 minutes').onRu
     }
 
 
-});
+});*/
+
+/*exports.scheduledUsFunction = functions.pubsub.schedule('every 10 minutes').onRun(async (context) => {
+    await getNewsFunction('us');
+
+
+});*/
 
 
 exports.appRequest = functions.https.onRequest(app);
