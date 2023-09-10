@@ -7,7 +7,7 @@ import 'widgets/feed_list.dart';
 
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
-  final HomeController homeController = Get.put(HomeController());
+
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -32,14 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.themeWhite,
       ),
       body: Column(
-        children: const [
+        children: [
           SizedBox(
             height: 15.0,
           ),
           CategoryList(),
-          SizedBox(
-            height: 30.0,
-          ),
           FeedList()
         ],
       ),
