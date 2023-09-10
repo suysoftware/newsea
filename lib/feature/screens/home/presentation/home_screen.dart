@@ -8,7 +8,6 @@ import 'widgets/feed_list.dart';
 class HomeScreen extends StatefulWidget {
   HomeScreen({super.key});
 
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -26,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "News",
+          "Newsea",
           style: TextStyle(color: AppColors.softBlack),
         ),
         backgroundColor: AppColors.themeWhite,
