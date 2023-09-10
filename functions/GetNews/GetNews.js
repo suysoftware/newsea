@@ -71,11 +71,9 @@ const getNewsFunction = async (country) => {
 
         await Promise.all(articlePromises);
 
-        res.status(200).send('Successfully processed articles');
 
     } catch (error) {
         console.error("Error fetching news or writing to Firestore: ", error);
-        res.status(500).send('Internal Server Error');
     }
 };
 module.exports = { getNews, getNewsFunction };
