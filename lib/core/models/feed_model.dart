@@ -49,11 +49,11 @@ class FeedModel {
         description: json["description"],
         url: json["url"],
         urlToImage: json["urlToImage"],
-        publishedAt: json["publishedAt"],
+        publishedAt: Timestamp(json["publishedAt"]["_seconds"], json["publishedAt"]["_nanoseconds"]),
         content: json["content"],
         categories: List<String>.from(json["categories"].map((x) => x)),
-        referenceNo: json["reference_no"],
-        subReferenceNo: json["sub_reference_no"],
+        referenceNo: json["referenceNo"],
+        subReferenceNo: json["subReferenceNo"],
         likes: List<dynamic>.from(json["likes"].map((x) => x)),
       );
 
@@ -68,8 +68,8 @@ class FeedModel {
         "publishedAt": publishedAt!.millisecondsSinceEpoch,
         "content": content,
         "categories": List<dynamic>.from(categories!.map((x) => x)),
-        "reference_no": referenceNo,
-        "sub_reference_no": subReferenceNo,
+        "referenceNo": referenceNo,
+        "subReferenceNo": subReferenceNo,
         "likes": List<dynamic>.from(likes!.map((x) => x)),
       };
 }
