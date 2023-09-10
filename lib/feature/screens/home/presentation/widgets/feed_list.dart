@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:newsea/core/constants/app_colors.dart';
 import 'package:newsea/core/models/feed_model.dart';
+import 'package:newsea/core/services/firebase/rest_api_requests.dart';
 import 'package:newsea/feature/screens/home/controller/home_controller.dart';
 
 import 'feed_card.dart';
@@ -26,15 +27,12 @@ class _FeedListState extends State<FeedList> {
               child: CircularProgressIndicator(),
             );
           }
-          print(homeController.categories);
-          return StreamBuilder<QuerySnapshot<FeedModel>>(
-              stream: FirebaseFirestore.instance
-                  .collection("translated_feeds")
-                  .doc(homeController.nsUser.userLanguage)
-                  .collection("feeds")
-                  .withConverter(fromFirestore: (snapshot, _) => FeedModel.fromJson(snapshot.data()!), toFirestore: (feed, _) => feed.toJson())
-                  .orderBy("publishedAt", descending: true)
-                  .snapshots(),
+
+          return FutureBuilder<List<FeedModel>?>(
+              future: RestApiRequests.getFilteredFeeds(homeController.getCountries(), homeController.getCategories(), homeController.nsUser.userLanguage),
+              //        future: RestApiRequests.getFeeds("https://us-central1-newsea-project.cloudfunctions.net/appRequest/getTrendFeeds?userUid=${homeController.nsUser.userUid}"),
+              //  future: RestApiRequests.getFeeds(
+              //     "https://us-central1-newsea-project.cloudfunctions.net/appRequest/getTranslatedFeed?userLanguage=AmericanEnglish&filteredCountries=United States"),
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   if (!snapshot.hasData) {
@@ -42,21 +40,18 @@ class _FeedListState extends State<FeedList> {
                       child: CircularProgressIndicator(),
                     );
                   }
-                  var dataCome = convert(snapshot.requireData.docs.map((e) => e.data()).toList(), homeController.categories, homeController.countries);
+                  var dataCome = snapshot.data; //convert(snapshot.requireData.docs.map((e) => e.data()).toList(), homeController.categories, homeController.countries);
 
                   return Flexible(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Container(
-                        decoration: const BoxDecoration(border: Border(top: BorderSide(width: 1.0, color: AppColors.mainListBorderStroke))),
-                        child: ListView.builder(
-                            reverse: false,
-                            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.values.last,
-                            itemCount: dataCome.length,
-                            itemBuilder: (context, index) {
-                              return dataCome.isNotEmpty ? FeedCard(feed: dataCome[index]) : const SizedBox();
-                            }),
-                      ),
+                      child: ListView.builder(
+                          reverse: false,
+                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.values.last,
+                          itemCount: dataCome!.length,
+                          itemBuilder: (context, index) {
+                            return dataCome.isNotEmpty ? FeedCard(feed: dataCome[index]) : const SizedBox();
+                          }),
                     ),
                   );
                 } else {
@@ -88,15 +83,13 @@ convert(List<FeedModel> feeds, List<String> categories, List<String> countries) 
     return categoryFilteredFeeds;
   }
 
-for (var feed in categoryFilteredFeeds) {
+  for (var feed in categoryFilteredFeeds) {
     for (var country in countries) {
-      if (feed.country==country.capitalizeFirst) {
+      if (feed.country == country.capitalizeFirst) {
         filteredFeeds.add(feed);
       }
     }
   }
-
-
 
   return filteredFeeds;
 }
