@@ -32,6 +32,7 @@ const translatedFeedToDatabase = async (feedData, toLanguage, fromLanguage, feed
                 subReferenceNo: translatedFeedReference.id,
                 likes: []
             }
+            
         );
 
 

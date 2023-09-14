@@ -39,6 +39,8 @@ class BasicFunctions {
     'Thenationaldesk.com': 'https://okcfox.com/resources/media/f5300a3b-c795-45e5-9161-976015d1a45e-full16x9_TND_letters_blk1.png?1611848598416'
   };
 
+
+
   static String getLinkFromName(String name) {
     return sources[name] ?? 'error';
   }
@@ -59,6 +61,11 @@ class BasicFunctions {
       return DateFormat('yMMMd').format(date);
     }
   }
+
+
+
+
+
 
   // Create Dart Maps to represent enums
   static const Map<String, String> countryLanguageEnum = {
